@@ -20,18 +20,20 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    SharedPreferences sp;
-    AdapterList adapterList;
-    SimpleAdapter adapter;
+    private SharedPreferences sp;
+    private AdapterList adapterList;
+    private SimpleAdapter adapter;
+    private ArrayList<Integer> delitedIndex=new ArrayList<>();
+    private static final String KEY="deleted";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        init();
+        init(savedInstanceState);
     }
 
-    public void init(){
+    public void init(Bundle savedInstanceState){
         sp=getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor ed=sp.edit();
         if(!sp.contains("listText")) {
@@ -42,11 +44,16 @@ public class MainActivity extends AppCompatActivity {
         setContent().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                adapterList.adapterList.remove(parent.getItemAtPosition(position));
+                adapterList.adapterList.remove(position);
                 adapter.notifyDataSetChanged();
+                delitedIndex.add(position);
             }
         });
 
+        if(savedInstanceState!=null) {
+            delitedIndex = savedInstanceState.getIntegerArrayList(KEY);
+            deleteIndexes();
+        }
 
         final SwipeRefreshLayout refresh=findViewById(R.id.refresh);
         refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -65,5 +72,18 @@ public class MainActivity extends AppCompatActivity {
         ListView listView=findViewById(R.id.myListView);
         listView.setAdapter(adapter);
         return listView;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putIntegerArrayList(KEY,delitedIndex);
+        super.onSaveInstanceState(outState);
+    }
+
+    private void deleteIndexes(){
+        for (int i=0;i<delitedIndex.size();i++) {
+            adapterList.adapterList.remove(delitedIndex.get(i).intValue());
+        }
+        adapter.notifyDataSetChanged();
     }
 }
