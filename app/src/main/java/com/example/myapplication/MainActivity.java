@@ -1,30 +1,24 @@
 package com.example.myapplication;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private SharedPreferences sp;
     private AdapterList adapterList;
     private SimpleAdapter adapter;
-    private ArrayList<Integer> delitedIndex=new ArrayList<>();
-    private static final String KEY="deleted";
+    private ArrayList<Integer> delitedIndex = new ArrayList<>();
+    private static final String KEY_DELETED = "deleted";
+    private static final String KEY_SHARED = "listText";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,12 +27,12 @@ public class MainActivity extends AppCompatActivity {
         init(savedInstanceState);
     }
 
-    public void init(Bundle savedInstanceState){
-        sp=getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor ed=sp.edit();
-        if(!sp.contains("listText")) {
-            ed.putString("listText", getString(R.string.large_text));
-            ed.commit();
+    public void init(Bundle savedInstanceState) {
+        sp = getPreferences(MODE_PRIVATE);
+        if (!sp.contains(KEY_SHARED)) {
+            sp.edit()
+                    .putString(KEY_SHARED, getString(R.string.large_text))
+                    .apply();
         }
 
         setContent().setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -50,12 +44,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(savedInstanceState!=null) {
-            delitedIndex = savedInstanceState.getIntegerArrayList(KEY);
+        if (savedInstanceState != null) {
+            delitedIndex = savedInstanceState.getIntegerArrayList(KEY_DELETED);
             deleteIndexes();
         }
 
-        final SwipeRefreshLayout refresh=findViewById(R.id.refresh);
+        final SwipeRefreshLayout refresh = findViewById(R.id.refresh);
         refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -66,22 +60,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public ListView setContent(){
-        adapterList=new AdapterList(sp.getString("listText",""));
-        adapter=adapterList.createAdapter(this);
-        ListView listView=findViewById(R.id.myListView);
+    public ListView setContent() {
+        adapterList = new AdapterList(sp.getString(KEY_SHARED, ""));
+        adapter = adapterList.createAdapter(this);
+        ListView listView = findViewById(R.id.myListView);
         listView.setAdapter(adapter);
         return listView;
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putIntegerArrayList(KEY,delitedIndex);
+        outState.putIntegerArrayList(KEY_DELETED, delitedIndex);
         super.onSaveInstanceState(outState);
     }
 
-    private void deleteIndexes(){
-        for (int i=0;i<delitedIndex.size();i++) {
+    private void deleteIndexes() {
+        for (int i = 0; i < delitedIndex.size(); i++) {
             adapterList.adapterList.remove(delitedIndex.get(i).intValue());
         }
         adapter.notifyDataSetChanged();
